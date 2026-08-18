@@ -66,7 +66,7 @@ def load_data():
     cleaned_rows = len(df)
     print(f"Data cleaning: removed {initial_rows - cleaned_rows} duplicate/null rows "
           f"({initial_rows} -> {cleaned_rows})")
-    # --- End cleaning ---
+   
 
     # Parse pickup_time (HH:MM:SS format)
     df['pickup_time'] = df['pickup_time'].astype(str)
@@ -78,18 +78,6 @@ def load_data():
 
     # Handle delivery_time: it's stored as delivery duration in minutes (numeric), not a timestamp
     df['delivery_duration'] = pd.to_numeric(df['delivery_time'], errors='coerce')
-
-    # Keep rows with missing or invalid delivery durations too so existing order lookups
-    # still work for all orders present in the CSV. Invalid rows are filtered later
-    # during model training/enrichment.
-
-    # NOTE: this function intentionally does NOT call the OSRM routing API.
-    # It's used for order lookups in the UI on every page load, and calling an
-    # external API per-row here would be slow and, at dataset scale, gets rate-limited -
-    # which was silently dropping most orders (including valid ones) from the table.
-    # Route enrichment (real_distance_km / real_duration_min) happens separately,
-    # only when actually needed for model training - see enrich_with_routing().
-    return df
 
 
 def enrich_with_routing(df, cache_path="data_with_routes.csv"):
